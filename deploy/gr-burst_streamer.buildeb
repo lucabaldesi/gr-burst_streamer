@@ -1,0 +1,60 @@
+#!/bin/bash
+PKG="gr-burst-streamer"
+VER="0.0.1"
+SECTION="user/hidden"
+PRIORITY="Optional"
+ARCH="amd64"
+MAINTAINER="Luca Baldesi <l.baldesi@northeastern.edu>"
+DESC="Burst continuous streamer for GNURadio"
+BUILD_DIRS="usr/"
+DEPS=""
+BUILD_DEPS="bc build-essential cmake liblog4cpp5-dev pkg-config libgmp-dev pybind11-dev libsndfile1-dev doxygen libfftw3-dev libuhd-dev"
+# more conf fields are available, check:
+# http://www.debian.org/doc/debian-policy/ch-controlfields.html
+
+WD="$PWD"
+
+# propose build dependencies
+if [[ $(/usr/bin/id -u) -ne 0 ]]; then  # running as normal user
+sudo apt install $BUILD_DEPS
+else  # running as root
+apt install $BUILD_DEPS
+fi
+
+# build our software
+mkdir build/
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr/ ../../
+make
+
+# create the destination folder tree
+make DESTDIR="${WD}/" install
+cd $WD
+
+# configuration part
+echo 2.0 > debian-binary
+echo '#!/bin/bash' > preinst
+echo '#!/bin/bash' > postinst
+echo '#!/bin/bash' > prerm
+echo '#!/bin/bash' > postrm
+
+cat > control << EOL
+Package: $PKG
+Version: $VER
+Section: $SECTION
+Priority: $PRIORITY
+Architecture: $ARCH
+Installed-Size: `du -ks $BUILD_DIRS | cut -f 1 | paste -sd+ - | bc`
+Maintainer: $MAINTAINER
+Depends: $DEPS
+Description: $DESC
+EOL
+
+# pack everything together
+tar czf control.tar.gz control preinst postinst prerm postrm
+tar czf data.tar.gz $BUILD_DIRS
+ar -r "$PKG.deb" debian-binary control.tar.gz data.tar.gz
+
+# cleanup
+rm -rf control control.tar.gz preinst postinst prerm postrm data.tar.gz
+

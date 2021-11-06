@@ -1,0 +1,40 @@
+id: burst_streamer_burst_streamer
+label: burst_streamer
+category: '[burst_streamer]'
+
+templates:
+  imports: import burst_streamer
+  make: burst_streamer.burst_streamer(${samples_per_second}, ${max_outputs})
+
+parameters:
+-   id: samples_per_second
+    label: Sample Rate
+    dtype: real
+    default: samp_rate
+-   id: vlen
+    label: Vector Length
+    dtype: int
+    default: '1'
+    hide: ${ 'part' if vlen == 1 else 'none' }
+-   id: max_outputs
+    label: Total maximum output elements
+    dtype: int
+    default: '-1'
+    hide: ${ 'part' if max_outputs == -1 else 'none' }
+
+inputs:
+-   domain: stream
+    dtype: complex
+    vlen: ${ vlen }
+
+outputs:
+-   domain: stream
+    dtype: complex
+    vlen: ${ vlen }
+
+asserts:
+- ${ vlen > 0 }
+
+#  'file_format' specifies the version of the GRC yml format used in the file
+#  and should usually not be changed.
+file_format: 1
