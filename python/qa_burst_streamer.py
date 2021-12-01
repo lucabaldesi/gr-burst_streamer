@@ -68,6 +68,33 @@ class qa_burst_streamer(gr_unittest.TestCase):
 
         self.assertTrue([0]+src_data+[0]*6 == dst_data or src_data+[0]*7 == dst_data)
 
+    def test_multi_input(self):
+        src_data1 = [1, 2, 3]
+        src_data2 = [4, 5, 6]
+        src1 = blocks.vector_source_c(src_data1)
+        src2 = blocks.vector_source_c(src_data2)
+        thr = burst_streamer(10, 10, 1)
+        dst1 = blocks.vector_sink_c()
+        dst2 = blocks.vector_sink_c()
+        self.tb.connect(src1, (thr, 0))
+        self.tb.connect(src2, (thr, 1))
+        self.tb.connect((thr, 0), dst1)
+        self.tb.connect((thr, 1), dst2)
+
+        start_time = time.perf_counter()
+        self.tb.run()
+        end_time = time.perf_counter()
+
+        total_time = end_time - start_time
+        self.assertGreater(total_time, 0.9)
+        self.assertLess(total_time, 1.1)
+
+        dst_data1 = dst1.data()
+        dst_data2 = dst2.data()
+
+        self.assertTrue([0]+src_data1+[0]*6 == dst_data1 or src_data1+[0]*7 == dst_data1)
+        self.assertTrue([0]+src_data2+[0]*6 == dst_data2 or src_data2+[0]*7 == dst_data2)
+
 
 if __name__ == '__main__':
     gr_unittest.run(qa_burst_streamer)

@@ -9,6 +9,8 @@
 #include <gnuradio/io_signature.h>
 #include <thread>
 
+#define MIN(a, b) ((a)<(b) ? (a) : (b))
+
 namespace gr {
 namespace burst_streamer {
 
@@ -25,9 +27,9 @@ burst_streamer::sptr burst_streamer::make(double samp_rate, int max_outputs, int
 burst_streamer_impl::burst_streamer_impl(double samp_rate, int max_outputs, int zero_burst_len)
     : gr::block("burst_streamer",
                 gr::io_signature::make(
-                    1 /* min inputs */, 1 /* max inputs */, sizeof(data_type)),
+                    1 /* min inputs */, -1 /* max inputs */, sizeof(data_type)),
                 gr::io_signature::make(
-                    1 /* min outputs */, 1 /*max outputs */, sizeof(data_type)))
+                    1 /* min outputs */, -1 /*max outputs */, sizeof(data_type)))
 {
     d_start = std::chrono::steady_clock::now();
     d_sample_rate = samp_rate;
@@ -53,19 +55,31 @@ int burst_streamer_impl::general_work(int noutput_items,
                                       gr_vector_const_void_star& input_items,
                                       gr_vector_void_star& output_items)
 {
-    const data_type* in = reinterpret_cast<const data_type*>(input_items[0]);
-    data_type* out = reinterpret_cast<data_type*>(output_items[0]);
+    const data_type* in;
+    data_type* out;
+    int i, noi, in_num = ninput_items.size();
 
     if (d_max_outputs > 0 && d_total_samples >= d_max_outputs)
         return WORK_DONE;
 
-    if (ninput_items[0] > 0) {
-        noutput_items = ninput_items[0];
-        std::memcpy(out, in, noutput_items * sizeof(data_type));
+    noi = std::numeric_limits<int>::max();
+    for (i=0; i<in_num; i++)
+        noi = MIN(ninput_items[i], noi);
+
+    if (noi > 0) {
+        noutput_items = noi;
+        for (i=0; i<in_num; i++) {
+            out = reinterpret_cast<data_type*>(output_items[i]);
+            in = reinterpret_cast<const data_type*>(input_items[i]);
+            std::memcpy(out, in, noutput_items * sizeof(data_type));
+        }
         consume_each(noutput_items);
     } else {
         noutput_items = d_zero_burst_len;
-        std::memset(out, 0, noutput_items * sizeof(data_type));
+        for (i=0; i<in_num; i++) {
+            out = reinterpret_cast<data_type*>(output_items[i]);
+            std::memset(out, 0, noutput_items * sizeof(data_type));
+        }
         consume_each(0);
     }
 
