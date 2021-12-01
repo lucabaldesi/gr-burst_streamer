@@ -4,7 +4,7 @@ category: '[burst_streamer]'
 
 templates:
   imports: import burst_streamer
-  make: burst_streamer.burst_streamer(${samples_per_second}, ${max_outputs})
+  make: burst_streamer.burst_streamer(${samples_per_second}, ${max_outputs}, ${zero_burst_len})
 
 parameters:
 -   id: samples_per_second
@@ -21,6 +21,11 @@ parameters:
     dtype: int
     default: '-1'
     hide: ${ 'part' if max_outputs == -1 else 'none' }
+-   id: zero_burst_len
+    label: Lenght of a zero burst
+    dtype: int
+    default: '1'
+    hide: ${ 'part' if zero_burst_len == 1 else 'none' }
 
 inputs:
 -   domain: stream

@@ -27,12 +27,12 @@ class qa_burst_streamer(gr_unittest.TestCase):
         self.tb = None
 
     def test_instance(self):
-        instance = burst_streamer(1e-9, -1)
+        instance = burst_streamer(1e-9, -1, 1)
 
     def test_with_enough_data(self):
         src_data = [1, 2, 3]
         src = blocks.vector_source_c(src_data)
-        thr = burst_streamer(10, 3)
+        thr = burst_streamer(10, 3, 1)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, thr, dst)
 
@@ -41,20 +41,18 @@ class qa_burst_streamer(gr_unittest.TestCase):
         end_time = time.perf_counter()
 
         total_time = end_time - start_time
-        self.assertGreater(total_time, 0.3)
+        self.assertGreater(total_time, 0.29)
         self.assertLess(total_time, 0.45)
 
         dst_data = dst.data()
 
-        if total_time > 0.4:
-            self.assertEqual([0]+src_data, dst_data)
-        else:
-            self.assertEqual(src_data, dst_data)
+
+        self.assertTrue([0]+src_data == dst_data or src_data == dst_data)
 
     def test_without_enough_data(self):
         src_data = [1, 2, 3]
         src = blocks.vector_source_c(src_data)
-        thr = burst_streamer(10, 10)
+        thr = burst_streamer(10, 10, 1)
         dst = blocks.vector_sink_c()
         self.tb.connect(src, thr, dst)
 

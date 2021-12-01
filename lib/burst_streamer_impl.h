@@ -21,9 +21,10 @@ private:
     uint64_t d_total_samples;
     std::chrono::duration<double> d_sample_period;
     int d_max_outputs;
+    int d_zero_burst_len;
 
 public:
-    burst_streamer_impl(double samp_rate, int max_outputs);
+    burst_streamer_impl(double samp_rate, int max_outputs, int zero_burst_len);
     ~burst_streamer_impl();
 
     // Where all the action really happens

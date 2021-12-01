@@ -13,16 +13,16 @@ namespace gr {
 namespace burst_streamer {
 
 using data_type = gr_complex;
-burst_streamer::sptr burst_streamer::make(double samp_rate, int max_outputs)
+burst_streamer::sptr burst_streamer::make(double samp_rate, int max_outputs, int zero_burst_len)
 {
-    return gnuradio::make_block_sptr<burst_streamer_impl>(samp_rate, max_outputs);
+    return gnuradio::make_block_sptr<burst_streamer_impl>(samp_rate, max_outputs, zero_burst_len);
 }
 
 
 /*
  * The private constructor
  */
-burst_streamer_impl::burst_streamer_impl(double samp_rate, int max_outputs)
+burst_streamer_impl::burst_streamer_impl(double samp_rate, int max_outputs, int zero_burst_len)
     : gr::block("burst_streamer",
                 gr::io_signature::make(
                     1 /* min inputs */, 1 /* max inputs */, sizeof(data_type)),
@@ -34,6 +34,7 @@ burst_streamer_impl::burst_streamer_impl(double samp_rate, int max_outputs)
     d_total_samples = 0;
     d_sample_period = std::chrono::duration<double>(1 / samp_rate);
     d_max_outputs = max_outputs;
+    d_zero_burst_len = zero_burst_len;
 }
 
 /*
@@ -63,7 +64,7 @@ int burst_streamer_impl::general_work(int noutput_items,
         std::memcpy(out, in, noutput_items * sizeof(data_type));
         consume_each(noutput_items);
     } else {
-        noutput_items = 1;
+        noutput_items = d_zero_burst_len;
         std::memset(out, 0, noutput_items * sizeof(data_type));
         consume_each(0);
     }

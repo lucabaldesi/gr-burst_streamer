@@ -24,7 +24,7 @@ class BURST_STREAMER_API burst_streamer : virtual public gr::block
 public:
     typedef std::shared_ptr<burst_streamer> sptr;
 
-    static sptr make(double samp_rate, int max_outputs = -1);
+    static sptr make(double samp_rate, int max_outputs = -1, int zero_burst_len = 1);
 };
 
 } // namespace burst_streamer

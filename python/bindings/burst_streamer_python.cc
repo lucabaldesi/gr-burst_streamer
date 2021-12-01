@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(burst_streamer.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(728c270de744b55b25b34ba5f67c6066)                     */
+/* BINDTOOL_HEADER_FILE_HASH(be40cffb9ee828b3e62817533f530f7d)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
